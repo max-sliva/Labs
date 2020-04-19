@@ -11,6 +11,7 @@
     </CLASSES>
     <JAVADOC>
       <root url="https://pdfbox.apache.org/docs/2.0.13/javadocs/" />
+      <root url="https://poi.apache.org/apidocs/3.17/" />
     </JAVADOC>
     <SOURCES>
       <root url="jar://$KOTLIN_BUNDLED$/lib/kotlin-stdlib-sources.jar!/" />

@@ -233,6 +233,7 @@ fun buildSouth(form: JFrame) {
     val butLoad = JButton("Load")
     val butToPDF = JButton("toPDF") //создаем новую кнопку
     val butToWord = JButton("toWord") //создаем новую кнопку
+    val butToPPTX = JButton("toPPTX") //создаем новую кнопку
     southBox.add(butSave)
     southBox.add(Box.createHorizontalGlue())
     southBox.add(butLoad)
@@ -240,6 +241,8 @@ fun buildSouth(form: JFrame) {
     southBox.add(butToPDF)
     southBox.add(Box.createHorizontalGlue()) // пружина
     southBox.add(butToWord)
+    southBox.add(Box.createHorizontalGlue()) // пружина
+    southBox.add(butToPPTX)
     var fileDialog = FileDialog(form)
     butSave.addActionListener {
         fileDialog.mode = FileDialog.SAVE
@@ -320,6 +323,20 @@ fun buildSouth(form: JFrame) {
             var fileName = fileDialog.directory+fileDialog.file
             if (!fileName.contains(".docx")) fileName = fileName.plus(".docx")
             garageToWord(garage, fileName)
+        }
+    }
+
+    butToPPTX.addActionListener{
+        fileDialog.mode = FileDialog.SAVE //диалог в режим сохранения
+        fileDialog.title = "Сохранить в pptx" //заголовок диалога сохранения
+        fileDialog.setFile("*.pptx") //фильтр для файлов
+        fileDialog.isVisible = true //показываем диалог сохранения
+//если пользователь выбрал каталог и файл, т.е. они не содержат null
+//это нужно, чтоб обработать отказ от сохранения, иначе будет ошибка
+        if (!(fileDialog.directory+fileDialog.file).contains("null")) {
+            var fileName = fileDialog.directory+fileDialog.file
+            if (!fileName.contains(".pptx")) fileName = fileName.plus(".pptx")
+            garageToPPTX(garage, fileName)
         }
     }
     form.add(southBox, BorderLayout.SOUTH)

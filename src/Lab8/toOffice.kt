@@ -14,7 +14,9 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import javax.swing.ImageIcon
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.valueParameters
 
 
 fun main(){
@@ -67,29 +69,59 @@ fun toPPT(fileName: String){
 }
 
 fun garageToPPTX(garage: GarageAuto, fileName: String){
-    val ppt = XMLSlideShow()
-    val slideMaster = ppt.slideMasters[0]
-    val titleLayout = slideMaster.getLayout(SlideLayout.TITLE)
-    //adding slides to the slodeshow
-    val slide0 = ppt.createSlide(titleLayout)
-    val title1 = slide0.getPlaceholder(0)
-    title1.setText("Гараж");
-    val title2 = slide0.getPlaceholder(1)
-    title2.clearText()
-    title2.setText("легковых и грузовых машин")
+    val ppt = XMLSlideShow() //создаем документ с презентацией
+    val slideMaster = ppt.slideMasters[0] //объект для видов компоновок
+    val titleLayout = slideMaster.getLayout(SlideLayout.TITLE) //компоновка титульного слайда
 
+    val slide0 = ppt.createSlide(titleLayout) //создаем титульный слайд с выбранной компоновкой
+    val title1 = slide0.getPlaceholder(0) //получаем доступ к основному заголовку титульного слайда
+    title1.text = "Гараж"; //делаем свой заголовок
+    val title2 = slide0.getPlaceholder(1) //получаем доступ к подзаголовку титульного слайда
+    title2.clearText() //очищаем его
+    title2.text = "легковых и грузовых машин" //делаем свой подзаголовок
+    //далее в цикле по объектам массива гаража будем создавать отдельный слайд для каждого объекта
     garage.getAll().forEach {
+        val tempAuto = it //сохраняем ссылку на очередной объект массива
+        //получаем объект для компоновки слайда с заголовком и содержимым
         val slideLayout = slideMaster.getLayout(SlideLayout.TITLE_AND_CONTENT);
-        val slide1 = ppt.createSlide(slideLayout)
-        val title: XSLFTextShape = slide1.getPlaceholder(0)
-        title.text = "Первый слайд"//setting the title in it
-        println("class = ${it.javaClass}")
-        var fields = if (it.javaClass.toString().contains("Car")) Car::class.memberProperties else Truck::class.memberProperties
-        fields.forEach {
-            println("\t${it.name}")
+        val slide1 = ppt.createSlide(slideLayout) //создаем слайд с выбранной компоновкой
+        val title = slide1.getPlaceholder(0) //получаем доступ к заголовку слайда
+        val jClassStr = tempAuto.javaClass.kotlin //выясняем класс текущего объекта
+//        println("class = ${jClassStr.toString().split('.').last()}")
+        println("class = ${jClassStr}") //выводим название класса в консоль для проверки
+//обычно название класса представлено в виде "class Пакет.Имя", нам нужно только имя, поэтому нужно взять слово
+        val objClass = jClassStr.toString().split('.').last() //после последней точки
+        title.text = objClass //задаем полученное имя заголовку слайда
+        val content: XSLFTextShape = slide1.getPlaceholder(1) //получаем доступ к основному телу слайда
+        content.clearText() //очищаем содержимое основного тела слайда
+    //полусчаем список полей класса текущего объекта и делаем цикл по списку
+        jClassStr.memberProperties.forEach {
+            println("\t${it.name}: ${it.get(tempAuto)}") //выводим имя текущего поля и его значение для текущего объекта
+            if (it.name!="image") {  //если поле - не изображение
+                val p1 = content.addNewTextParagraph() //создаем тестовый объект в виде списка
+                p1.indentLevel = 0
+                p1.isBullet = true
+                val r1 = p1.addNewTextRun()
+                r1.setText("${it.name}: ${it.get(tempAuto)}")
+            } else {
+                val picture: ByteArray = IOUtils.toByteArray(FileInputStream("${it.get(tempAuto)}"))
+                val idx = ppt.addPicture(picture, PictureData.PictureType.PNG)
+                var pic = slide1.createPicture(idx)
+                val icon = ImageIcon("${it.get(tempAuto)}") //Объект ImageIcon для временной загрузки изображения из поля объекта
+                val width  = icon.iconWidth //чтоб получить реальные размеры картинки для вычисления
+                val height = icon.iconHeight //соотношения сторон
+                val imageScale = width / height.toFloat()
+                val newHeight = 200 //задаем желаемую высоту картинки
+                val newWidth = (newHeight * imageScale)  //получаем соотвествующую ширину картинки
+                pic.anchor = Rectangle(350, 130, newWidth.toInt(), newHeight);
+            }
         }
-//        it.
     }
+    val file = File(fileName)
+    val out = FileOutputStream(file)
+    ppt.write(out)
+    out.close()
+    println("Done writing pptx")
 }
 
 fun toWordDocx(str: String){
