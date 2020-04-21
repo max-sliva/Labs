@@ -98,29 +98,33 @@ fun garageToPPTX(garage: GarageAuto, fileName: String){
         jClassStr.memberProperties.forEach {
             println("\t${it.name}: ${it.get(tempAuto)}") //выводим имя текущего поля и его значение для текущего объекта
             if (it.name!="image") {  //если поле - не изображение
-                val p1 = content.addNewTextParagraph() //создаем тестовый объект в виде списка
-                p1.indentLevel = 0
-                p1.isBullet = true
-                val r1 = p1.addNewTextRun()
-                r1.setText("${it.name}: ${it.get(tempAuto)}")
-            } else {
+                val p1 = content.addNewTextParagraph() //создаем текстовый объект в виде списка
+                p1.indentLevel = 0 //задаем параметры списка
+                p1.isBullet = true //чтобы он был маркированный
+                val r1 = p1.addNewTextRun() //берем у списка объект для добавления нового элемента
+                r1.setText("${it.name}: ${it.get(tempAuto)}")  //вставляем текст в элемент списка
+            } else {  //иначе, если поле - изображение
+         //создаем байтовый массив, в который загружаем изображение из файла, который берем по значению в поле image
                 val picture: ByteArray = IOUtils.toByteArray(FileInputStream("${it.get(tempAuto)}"))
+         //создаем объект для добавления изображения на слайд
                 val idx = ppt.addPicture(picture, PictureData.PictureType.PNG)
-                var pic = slide1.createPicture(idx)
+                var pic = slide1.createPicture(idx) //вставляем объект с изображением на слайд
                 val icon = ImageIcon("${it.get(tempAuto)}") //Объект ImageIcon для временной загрузки изображения из поля объекта
                 val width  = icon.iconWidth //чтоб получить реальные размеры картинки для вычисления
                 val height = icon.iconHeight //соотношения сторон
                 val imageScale = width / height.toFloat()
                 val newHeight = 200 //задаем желаемую высоту картинки
                 val newWidth = (newHeight * imageScale)  //получаем соотвествующую ширину картинки
+         // задаем параметры изображения на слайде: положение по x и у, ширина, выота
                 pic.anchor = Rectangle(350, 130, newWidth.toInt(), newHeight);
             }
         }
     }
-    val file = File(fileName)
-    val out = FileOutputStream(file)
-    ppt.write(out)
-    out.close()
+    val file = File(fileName) //создаем файл, в который будет сохранена презентация
+    val out = FileOutputStream(file)  //создаем файловый поток вывода с новым файлом
+    ppt.write(out)  //пишем в файл созданную презентацию
+    out.close()  //закрываем поток
+    ppt.close() //закрываем документ
     println("Done writing pptx")
 }
 
