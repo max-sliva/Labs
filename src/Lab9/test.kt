@@ -54,6 +54,7 @@ fun main(){
                 else // иначе удаляем объек с текущим номером
                     lModel.remove(index)
             }
+            beforeIndex = false //сбрасываем признак перемещения объекта
         }
 
         override fun canImport(support: TransferSupport): Boolean { //перегружаем метод для разрешения импорта объекта
